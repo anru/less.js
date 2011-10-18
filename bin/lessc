@@ -13,6 +13,7 @@ var options = {
     optimization: 1,
     silent: false,
     paths: [],
+    includes: [],
     color: true
 };
 
@@ -21,6 +22,11 @@ args = args.filter(function (arg) {
 
     if (match = arg.match(/^-I(.+)$/)) {
         options.paths.push(match[1]);
+        return false;
+    }
+
+    if (match = arg.match(/^-R(.+)$/)) {
+        options.includes.push(match[1]);
         return false;
     }
 
@@ -49,6 +55,9 @@ args = args.filter(function (arg) {
             break;
         case 'no-color':
             options.color = false;
+            break;
+        case 'include-file':
+            [].splice.apply(options.includes, [options.includes.length, 0].concat(match[2].split(':')));
             break;
         case 'include-path':
             options.paths = match[2].split(':')
@@ -92,6 +101,7 @@ var parseLessFile = function (e, data) {
         var root = new(less.Parser)({
             paths: [path.dirname(input)].concat(options.paths),
             optimization: options.optimization,
+            includes: options.includes,
             filename: input
         }).parse(data);
         root.toCSS({ compress: options.compress }).then(function(css) {
